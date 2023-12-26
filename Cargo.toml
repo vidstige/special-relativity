@@ -8,6 +8,7 @@ rust-version = "1.72"
 
 [dependencies]
 rand = "0.8.5"
+nalgebra = "0.32.3"
 # enable the js feature in getrandom
 getrandom = { version = "0.2.11", features = ["js"] }
 eframe = {version = "0.24.1", default-features = false, features = [
