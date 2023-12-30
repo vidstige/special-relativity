@@ -1,9 +1,9 @@
-use nalgebra::{Vector3, Matrix, U3, ArrayStorage};
+use nalgebra::{Vector3, Matrix, U3, ArrayStorage, Point3};
 
 
 // 2D-space time three-vector. x,y and time (z). Time cordinates are stored
 // divided by c
-pub type Position = Vector3<f32>; 
+pub type Position = Point3<f32>; 
 pub type Velocity = Vector3<f32>;
 
 pub struct Frame {
