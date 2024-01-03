@@ -1,6 +1,6 @@
 use eframe::{egui::{self, Id, Painter, Key}, epaint::{Pos2, Color32, Vec2, PathShape, Stroke}};
-use nalgebra::{Rotation2, Vector2, Point2, constraint::SameNumberOfRows};
-use special_relativity::{self, Position, Frame, Velocity};
+use nalgebra::{Rotation2, Vector2, Point2};
+use special_relativity::{self, Position, Frame, Velocity, Observer};
 
 struct Transform {
     
@@ -17,6 +17,7 @@ impl Transform {
 
 pub struct SRApp {
     rng: rand::rngs::ThreadRng,
+    observer: Observer,
     ship: Ship,
     c: f32,
     transform: Transform,
@@ -31,6 +32,7 @@ impl SRApp {
     pub fn new() -> Self {
         Self {
             rng: rand::thread_rng(),
+            observer: Observer{velocity: Velocity::new(0.0, 0.0, 1.0)},
             ship: Ship {
                 frame: Frame::new(Position::new(0.0, 0.0, 0.0), Velocity::new(0.0, 0.0, 1.0)),
                 angle: 0.0,
@@ -42,10 +44,10 @@ impl SRApp {
 
     fn control_ship(&mut self, i: &egui::InputState, dt: f32) {
         if i.key_down(Key::ArrowLeft) {
-            self.ship.angle -= 0.1;
+            self.ship.angle -= 0.2;
         }
         if i.key_down(Key::ArrowRight) {
-            self.ship.angle += 0.1;
+            self.ship.angle += 0.2;
         }
         if i.key_down(Key::ArrowUp) {
             let a = Rotation2::new(self.ship.angle) * Vector2::new(0.0, -20.0);
@@ -54,12 +56,22 @@ impl SRApp {
     }
 }
 
-fn draw(app: &SRApp, painter: &Painter, transform: &Transform) {
-    ///let r = 20.0;
+fn draw_grid(painter: &Painter, size: Vec2) {
+    let stroke = Stroke::new(1.0, Color32::from_rgb(64, 64, 64));
+    let spacing = 32.0;
+    let width = (size.x / spacing) as usize;
+    for x in 0..width {
+        painter.vline(x as f32 * spacing, 0.0..=size.y, stroke);
+    }
+    let height = (size.y / spacing) as usize;
+    for y in 0..height {
+        painter.hline(0.0..=size.x, y as f32 * spacing, stroke);
+    }
+}
+
+fn draw(painter: &Painter, size: Vec2, app: &SRApp) {
+    draw_grid(painter, size);
     let color = Color32::from_rgb(128, 128, 128);
-    //let position = app.ship.frame.position;
-    //let screen = transform.forward(&position);
-    //painter.circle_filled(screen, r, color);
     let points = vec![
         Point2::new(0.0, -10.0),
         Point2::new(5.0, 10.0),
@@ -68,7 +80,7 @@ fn draw(app: &SRApp, painter: &Painter, transform: &Transform) {
     let rotation = Rotation2::new(app.ship.angle);
     let delta = Vector2::new(app.ship.frame.position.x, app.ship.frame.position.y);
     let ship_shape = PathShape {
-        points: points.iter().map(|p| transform.forward(&(rotation * p + delta))).collect(),
+        points: points.iter().map(|p| app.transform.forward(&(rotation * p + delta))).collect(),
         closed: false,
         fill: color,
         stroke: Stroke::NONE,
@@ -87,10 +99,12 @@ impl eframe::App for SRApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             // compute time step
             let real = ui.input(|i| i.unstable_dt).min(1.0 / 30.0);
-            draw(self, ui.painter(), &self.transform);
+
+            draw(ui.painter(), ui.available_size(), self);
             ui.input(|i| self.control_ship(i, real));
             self.ship.frame.position += self.ship.frame.velocity * real;
             //println!("{:?} {:?}", self.ship.frame.velocity, self.ship.frame.position);
+
             ui.ctx().request_repaint();
         });
     }

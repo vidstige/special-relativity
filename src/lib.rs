@@ -17,6 +17,10 @@ impl Frame {
     }
 }
 
+pub struct Observer {
+    pub velocity: Velocity,
+}
+
 pub type Matrix3x3<T> = Matrix<T, U3, U3, ArrayStorage<T, 3, 3>>;
 type Metric = Matrix3x3<f32>;
 
