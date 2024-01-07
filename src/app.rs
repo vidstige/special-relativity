@@ -69,23 +69,28 @@ fn draw_grid(painter: &Painter, size: Vec2) {
     }
 }
 
-fn draw(painter: &Painter, size: Vec2, app: &SRApp) {
-    draw_grid(painter, size);
-    let color = Color32::from_rgb(128, 128, 128);
+fn draw_ship(painter: &Painter, app: &SRApp) {
+    let color = Color32::from_rgb(16, 160, 128);
     let points = vec![
-        Point2::new(0.0, -10.0),
-        Point2::new(5.0, 10.0),
-        Point2::new(-5.0, 10.0),
+        Point2::new(0.0, -1.5) * 15.0,
+        Point2::new(1.0, 1.5) * 15.0,
+        Point2::new(-1.0, 1.5) * 15.0,
     ];
     let rotation = Rotation2::new(app.ship.angle);
+    
     let delta = Vector2::new(app.ship.frame.position.x, app.ship.frame.position.y);
     let ship_shape = PathShape {
         points: points.iter().map(|p| app.transform.forward(&(rotation * p + delta))).collect(),
-        closed: false,
+        closed: true,
         fill: color,
         stroke: Stroke::NONE,
      };
     painter.add(ship_shape);
+}
+
+fn draw(painter: &Painter, size: Vec2, app: &SRApp) {
+    draw_grid(painter, size);
+    draw_ship(painter, app);
 }
 
 impl eframe::App for SRApp {
